@@ -78,10 +78,10 @@ class Teamspeak3Manager:
                                 {'sgid': sgid, 'permsid': 'i_group_needed_modify_power', 'permvalue': 75,
                                  'permnegated': 0, 'permskip': 0})
             server.send_command('servergroupaddperm',
-                                {'sgid': sgid, 'permsid': 'i_group_needed_member_add_power', 'permvalue': 100,
+                                {'sgid': sgid, 'permsid': 'i_group_needed_member_add_power', 'permvalue': 75,
                                  'permnegated': 0, 'permskip': 0})
             server.send_command('servergroupaddperm',
-                                {'sgid': sgid, 'permsid': 'i_group_needed_member_remove_power', 'permvalue': 100,
+                                {'sgid': sgid, 'permsid': 'i_group_needed_member_remove_power', 'permvalue': 75,
                                  'permnegated': 0, 'permskip': 0})
         logger.info("Created group on TS3 server with name %s and id %s" % (groupname, sgid))
         return sgid
