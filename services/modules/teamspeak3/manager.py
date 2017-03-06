@@ -94,17 +94,6 @@ class Teamspeak3Manager:
             ret = self.server.send_command('servergroupadd', {'name': groupname})
             self.__group_cache = None
             sgid = ret['keys']['sgid']
-<<<<<<< HEAD:services/managers/teamspeak3_manager.py
-            server.send_command('servergroupaddperm',
-                                {'sgid': sgid, 'permsid': 'i_group_needed_modify_power', 'permvalue': 75,
-                                 'permnegated': 0, 'permskip': 0})
-            server.send_command('servergroupaddperm',
-                                {'sgid': sgid, 'permsid': 'i_group_needed_member_add_power', 'permvalue': 75,
-                                 'permnegated': 0, 'permskip': 0})
-            server.send_command('servergroupaddperm',
-                                {'sgid': sgid, 'permsid': 'i_group_needed_member_remove_power', 'permvalue': 75,
-                                 'permnegated': 0, 'permskip': 0})
-=======
             self.server.send_command('servergroupaddperm',
                                      {'sgid': sgid, 'permsid': 'i_group_needed_modify_power', 'permvalue': 75,
                                       'permnegated': 0, 'permskip': 0})
@@ -114,7 +103,6 @@ class Teamspeak3Manager:
             self.server.send_command('servergroupaddperm',
                                      {'sgid': sgid, 'permsid': 'i_group_needed_member_remove_power', 'permvalue': 100,
                                       'permnegated': 0, 'permskip': 0})
->>>>>>> ecb74e67b0f1f438af3ada1a36ce9cd7a3ee3304:services/modules/teamspeak3/manager.py
         logger.info("Created group on TS3 server with name %s and id %s" % (groupname, sgid))
         return sgid
 
