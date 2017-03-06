@@ -4,13 +4,14 @@ from django.contrib.auth import logout
 from django.contrib.auth import authenticate
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.utils.translation import ugettext_lazy as _
 from eveonline.managers import EveManager
 from eveonline.models import EveCharacter
 from authentication.models import AuthServicesInfo
 from authentication.forms import LoginForm, RegistrationForm
 from django.contrib.auth.models import User
 from django.contrib import messages
-from eve_sso.decorators import token_required
+from esi.decorators import token_required
 import logging
 
 logger = logging.getLogger(__name__)
@@ -34,10 +35,10 @@ def login_user(request):
                     return redirect(redirect_to)
                 else:
                     logger.info("Login attempt failed for user %s: user marked inactive." % user)
-                    messages.warning(request, 'Your account has been disabled.')
+                    messages.warning(request, _('Your account has been disabled.'))
             else:
                 logger.info("Failed login attempt: provided username %s" % form.cleaned_data['username'])
-                messages.error(request, 'Username/password invalid.')
+                messages.error(request, _('Username/password invalid.'))
             return render(request, 'public/login.html', context={'form': form})
     else:
         logger.debug("Providing new login form.")
@@ -67,7 +68,8 @@ def register_user_view(request):
 
                 user.save()
                 logger.info("Created new user %s" % user)
-                messages.warning(request, 'Add an API key to set up your account.')
+                login(request, user)
+                messages.warning(request, _('Add an API key to set up your account.'))
                 return redirect("auth_dashboard")
 
             else:
@@ -89,31 +91,26 @@ def index_view(request):
 
 
 @login_required
-def dashboard_view(request):
-    logger.debug("dashboard_view called by user %s" % request.user)
-    render_items = {'characters': EveManager.get_characters_by_owner_id(request.user.id),
-                    'authinfo': AuthServicesInfo.objects.get_or_create(user=request.user)[0]}
-    return render(request, 'registered/dashboard.html', context=render_items)
-
-
-@login_required
 def help_view(request):
     logger.debug("help_view called by user %s" % request.user)
     return render(request, 'registered/help.html')
 
+
 @token_required(new=True)
-def sso_login(request, tokens=[]):
-    token = tokens[0]
+def sso_login(request, token):
     try:
         char = EveCharacter.objects.get(character_id=token.character_id)
         if char.user:
             if char.user.is_active:
                 login(request, char.user)
-                return redirect(dashboard_view)
+                token.user = char.user
+                token.save()
+                return redirect('auth_dashboard')
             else:
-                messages.error(request, 'Your account has been disabled.')
+                messages.error(request, _('Your account has been disabled.'))
         else:
-            messages.warning(request, 'Authenticated character has no owning account. Please log in with username and password.')
+            messages.warning(request,
+                             _('Authenticated character has no owning account. Please log in with username and password.'))
     except EveCharacter.DoesNotExist:
-        messages.error(request, 'No account exists with the authenticated character. Please create an account first.')
+        messages.error(request, _('No account exists with the authenticated character. Please create an account first.'))
     return redirect(login_user)

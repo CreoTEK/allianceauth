@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 def create_application_test(user):
-    auth, c = AuthServicesInfo.objects.get_or_create(user=user)
+    auth = AuthServicesInfo.objects.get(user=user)
     if auth.main_char_id:
         return True
     else:
@@ -31,7 +31,7 @@ def hr_application_management_view(request):
     logger.debug("hr_application_management_view called by user %s" % request.user)
     corp_applications = []
     finished_corp_applications = []
-    auth_info, c = AuthServicesInfo.objects.get_or_create(user=request.user)
+    auth_info = AuthServicesInfo.objects.get(user=request.user)
     main_char = None
     if auth_info.main_char_id:
         try:
@@ -138,6 +138,7 @@ def hr_application_view(request, app_id):
                 comment.text = form.cleaned_data['comment']
                 comment.save()
                 logger.info("Saved comment by user %s to %s" % (request.user, app))
+                return redirect(hr_application_view, app_id)
         else:
             logger.warn("User %s does not have permission to add ApplicationComments" % request.user)
     else:
@@ -231,14 +232,15 @@ def hr_application_search(request):
                         applications.add(application)
                     if searchstring in application.main_character.corporation_name.lower():
                         applications.add(application)
-                    if searchstring in application.main_character.alliance_name.lower():
+                    if application.main_character.alliance_name \
+                            and searchstring in application.main_character.alliance_name.lower():
                         applications.add(application)
                 for character in application.characters:
                     if searchstring in character.character_name.lower():
                         applications.add(application)
                     if searchstring in character.corporation_name.lower():
                         applications.add(application)
-                    if searchstring in character.alliance_name.lower():
+                    if character.alliance_name and searchstring in character.alliance_name.lower():
                         applications.add(application)
                 if searchstring in application.user.username.lower():
                     applications.add(application)

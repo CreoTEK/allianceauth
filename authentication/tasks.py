@@ -20,14 +20,35 @@ def generate_alliance_group_name(alliancename):
 
 
 def disable_member(user):
+    """
+    Disable a member who is transitioning to a NONE state.
+    :param user: django.contrib.auth.models.User to disable
+    :return:
+    """
     logger.debug("Disabling member %s" % user)
+    if user.user_permissions.all().exists():
+        logger.info("Clearning user %s permission to deactivate user." % user)
+        user.user_permissions.clear()
+    if user.groups.all().exists():
+        logger.info("Clearing all non-public user %s groups to disable member." % user)
+        user.groups.remove(*user.groups.filter(authgroup__public=False))
+    validate_services.apply(args=(user,))
+
+
+def disable_user(user):
+    """
+    Disable a user who is being set inactive or deleted
+    :param user: django.contrib.auth.models.User to disable
+    :return:
+    """
+    logger.debug("Disabling user %s" % user)
     if user.user_permissions.all().exists():
         logger.info("Clearning user %s permission to deactivate user." % user)
         user.user_permissions.clear()
     if user.groups.all().exists():
         logger.info("Clearing user %s groups to deactivate user." % user)
         user.groups.clear()
-    validate_services(user, None)
+    validate_services.apply(args=(user,))
 
 
 def make_member(auth):
@@ -63,15 +84,13 @@ def make_blue(auth):
 
 
 def determine_membership_by_character(char):
-    if settings.IS_CORP:
-        if int(char.corporation_id) == int(settings.CORP_ID):
-            logger.debug("Character %s in owning corp id %s" % (char, char.corporation_id))
-            return MEMBER_STATE
-    else:
-        if int(char.alliance_id) == int(settings.ALLIANCE_ID):
-            logger.debug("Character %s in owning alliance id %s" % (char, char.alliance_id))
-            return MEMBER_STATE
-    if EveCorporationInfo.objects.filter(corporation_id=char.corporation_id).exists() is False:
+    if str(char.corporation_id) in settings.STR_CORP_IDS:
+        logger.debug("Character %s in member corp id %s" % (char, char.corporation_id))
+        return MEMBER_STATE
+    elif str(char.alliance_id) in settings.STR_ALLIANCE_IDS:
+        logger.debug("Character %s in member alliance id %s" % (char, char.alliance_id))
+        return MEMBER_STATE
+    elif not EveCorporationInfo.objects.filter(corporation_id=char.corporation_id).exists():
         logger.debug("No corp model for character %s corp id %s. Unable to check standings. Non-member." % (
             char, char.corporation_id))
         return NONE_STATE
@@ -87,7 +106,7 @@ def determine_membership_by_character(char):
 
 def determine_membership_by_user(user):
     logger.debug("Determining membership of user %s" % user)
-    auth, c = AuthServicesInfo.objects.get_or_create(user=user)
+    auth = AuthServicesInfo.objects.get(user=user)
     if auth.main_char_id:
         if EveCharacter.objects.filter(character_id=auth.main_char_id).exists():
             char = EveCharacter.objects.get(character_id=auth.main_char_id)
@@ -107,11 +126,13 @@ def set_state(user):
     else:
         state = NONE_STATE
     logger.debug("Assigning user %s to state %s" % (user, state))
-    auth = AuthServicesInfo.objects.get_or_create(user=user)[0]
+    auth = AuthServicesInfo.objects.get(user=user)
     if auth.state != state:
         auth.state = state
         auth.save()
         notify(user, "Membership State Change", message="You membership state has been changed to %s" % state)
+    assign_corp_group(auth)
+    assign_alliance_group(auth)
 
 
 def assign_corp_group(auth):

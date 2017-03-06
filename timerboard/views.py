@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import permission_required
 from django.shortcuts import get_object_or_404
 from authentication.decorators import members_and_blues
 from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
 from django.contrib import messages
 from authentication.states import MEMBER_STATE, BLUE_STATE
 from authentication.models import AuthServicesInfo
@@ -20,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 def timer_util_test(user):
-    return AuthServicesInfo.objects.get_or_create(user=user)[0].state in [BLUE_STATE, MEMBER_STATE]
+    return AuthServicesInfo.objects.get(user=user).state in [BLUE_STATE, MEMBER_STATE]
 
 
 @login_required
@@ -28,7 +29,7 @@ def timer_util_test(user):
 @permission_required('auth.timer_view')
 def timer_view(request):
     logger.debug("timer_view called by user %s" % request.user)
-    auth_info = AuthServicesInfo.objects.get_or_create(user=request.user)[0]
+    auth_info = AuthServicesInfo.objects.get(user=request.user)
     char = EveManager.get_character_by_id(auth_info.main_char_id)
     if char:
         corp = EveManager.get_corporation_info_by_id(char.corporation_id)
@@ -64,7 +65,7 @@ def add_timer_view(request):
         logger.debug("Request type POST contains form valid: %s" % form.is_valid())
         if form.is_valid():
             # Get character
-            auth_info = AuthServicesInfo.objects.get_or_create(user=request.user)[0]
+            auth_info = AuthServicesInfo.objects.get(user=request.user)
             character = EveManager.get_character_by_id(auth_info.main_char_id)
             corporation = EveManager.get_corporation_info_by_id(character.corporation_id)
             logger.debug(
@@ -91,7 +92,7 @@ def add_timer_view(request):
             timer.user = request.user
             timer.save()
             logger.info("Created new timer in %s at %s by user %s" % (timer.system, timer.eve_time, request.user))
-            messages.success(request, 'Added new timer in %s at %s.' % (timer.system, timer.eve_time))
+            messages.success(request, _('Added new timer in %(system)s at %(time)s.') % {"system": timer.system, "time": timer.eve_time})
             return redirect("/timers/")
     else:
         logger.debug("Returning new TimerForm")
@@ -110,11 +111,12 @@ def remove_timer(request, timer_id):
         timer = Timer.objects.get(id=timer_id)
         timer.delete()
         logger.debug("Deleting timer id %s by user %s" % (timer_id, request.user))
-        messages.success(request, 'Deleted timer in %s at %s.' % (timer.system, timer.eve_time))
+        messages.success(request, _('Deleted timer in %(system)s at %(time)s.') % {'system': timer.system,
+                                                                                   'time': timer.eve_time})
     else:
         logger.error(
             "Unable to delete timer id %s for user %s - timer matching id not found." % (timer_id, request.user))
-        messages.error(request, 'Unable to locate timer with ID %s.' % timer_id)
+        messages.error(request, _('Unable to locate timer with ID %(timerid)s.') % {"timerid": timer_id})
     return redirect("auth_timer_view")
 
 
@@ -127,7 +129,7 @@ def edit_timer(request, timer_id):
         form = TimerForm(request.POST)
         logger.debug("Received POST request containing updated timer form, is valid: %s" % form.is_valid())
         if form.is_valid():
-            auth_info = AuthServicesInfo.objects.get_or_create(user=request.user)[0]
+            auth_info = AuthServicesInfo.objects.get(user=request.user)
             character = EveManager.get_character_by_id(auth_info.main_char_id)
             corporation = EveManager.get_corporation_info_by_id(character.corporation_id)
             logger.debug(
@@ -150,7 +152,7 @@ def edit_timer(request, timer_id):
             timer.eve_character = character
             timer.eve_corp = corporation
             logger.info("User %s updating timer id %s " % (request.user, timer_id))
-            messages.success(request, 'Saved changes to the timer.')
+            messages.success(request, _('Saved changes to the timer.'))
             timer.save()
         return redirect("auth_timer_view")
     else:

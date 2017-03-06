@@ -10,13 +10,19 @@ import services.views
 import groupmanagement.views
 import optimer.views
 import timerboard.views
-import corputils.views
 import fleetactivitytracking.views
 import fleetup.views
 import srp.views
 import notifications.views
 import hrapplications.views
-import eve_sso.urls
+import corputils.urls
+import esi.urls
+import permissions_tool.urls
+from alliance_auth import NAME
+
+admin.site.site_header = NAME
+
+from alliance_auth.hooks import get_hooks
 
 # Functional/Untranslated URL's
 urlpatterns = [
@@ -27,8 +33,8 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
 
     # SSO
-    url (r'^sso/', include(eve_sso.urls, namespace='eve_sso')),
-    url (r'^sso/login$', authentication.views.sso_login, name='auth_sso_login'),
+    url(r'^sso/', include(esi.urls, namespace='esi')),
+    url(r'^sso/login$', authentication.views.sso_login, name='auth_sso_login'),
 
     # Index
     url(_(r'^$'), authentication.views.index_view, name='auth_index'),
@@ -40,85 +46,6 @@ urlpatterns = [
     url(r'^main_character_change/(\w+)/$', eveonline.views.main_character_change,
         name='auth_main_character_change'),
     url(r'^api_verify_owner/(\w+)/$', eveonline.views.api_sso_validate, name='auth_api_sso'),
-
-    # Forum Service Control
-    url(r'^activate_forum/$', services.views.activate_forum, name='auth_activate_forum'),
-    url(r'^deactivate_forum/$', services.views.deactivate_forum, name='auth_deactivate_forum'),
-    url(r'^reset_forum_password/$', services.views.reset_forum_password,
-        name='auth_reset_forum_password'),
-    url(r'^set_forum_password/$', services.views.set_forum_password, name='auth_set_forum_password'),
-
-    # Jabber Service Control
-    url(r'^activate_jabber/$', services.views.activate_jabber, name='auth_activate_jabber'),
-    url(r'^deactivate_jabber/$', services.views.deactivate_jabber, name='auth_deactivate_jabber'),
-    url(r'^reset_jabber_password/$', services.views.reset_jabber_password,
-        name='auth_reset_jabber_password'),
-
-    # Mumble service control
-    url(r'^activate_mumble/$', services.views.activate_mumble, name='auth_activate_mumble'),
-    url(r'^deactivate_mumble/$', services.views.deactivate_mumble, name='auth_deactivate_mumble'),
-    url(r'^reset_mumble_password/$', services.views.reset_mumble_password,
-        name='auth_reset_mumble_password'),
-    url(r'^set_mumble_password/$', services.views.set_mumble_password, name='auth_set_mumble_password'),
-
-    # Ipboard service control
-    url(r'^activate_ipboard/$', services.views.activate_ipboard_forum,
-        name='auth_activate_ipboard'),
-    url(r'^deactivate_ipboard/$', services.views.deactivate_ipboard_forum,
-        name='auth_deactivate_ipboard'),
-    url(r'^reset_ipboard_password/$', services.views.reset_ipboard_password,
-        name='auth_reset_ipboard_password'),
-    url(r'^set_ipboard_password/$', services.views.set_ipboard_password, name='auth_set_ipboard_password'),
-
-    # XenForo service control
-    url(r'^activate_xenforo/$', services.views.activate_xenforo_forum,
-        name='auth_activate_xenforo'),
-    url(r'^deactivate_xenforo/$', services.views.deactivate_xenforo_forum,
-        name='auth_deactivate_xenforo'),
-    url(r'^reset_xenforo_password/$', services.views.reset_xenforo_password,
-        name='auth_reset_xenforo_password'),
-    url(r'^set_xenforo_password/$', services.views.set_xenforo_password, name='auth_set_xenforo_password'),
-
-    # Teamspeak3 service control
-    url(r'^activate_teamspeak3/$', services.views.activate_teamspeak3,
-        name='auth_activate_teamspeak3'),
-    url(r'^deactivate_teamspeak3/$', services.views.deactivate_teamspeak3,
-        name='auth_deactivate_teamspeak3'),
-    url(r'reset_teamspeak3_perm/$', services.views.reset_teamspeak3_perm,
-        name='auth_reset_teamspeak3_perm'),
-
-    # Discord Service Control
-    url(r'^activate_discord/$', services.views.activate_discord, name='auth_activate_discord'),
-    url(r'^deactivate_discord/$', services.views.deactivate_discord, name='auth_deactivate_discord'),
-    url(r'^reset_discord/$', services.views.reset_discord, name='auth_reset_discord'),
-    url(r'^discord_callback/$', services.views.discord_callback, name='auth_discord_callback'),
-    url(r'^discord_add_bot/$', services.views.discord_add_bot, name='auth_discord_add_bot'),
-
-    # Discourse Service Control
-    url(r'^discourse_sso$', services.views.discourse_sso, name='auth_discourse_sso'),
-
-    # IPS4 Service Control
-    url(r'^activate_ips4/$', services.views.activate_ips4,
-        name='auth_activate_ips4'),
-    url(r'^deactivate_ips4/$', services.views.deactivate_ips4,
-        name='auth_deactivate_ips4'),
-    url(r'^reset_ips4_password/$', services.views.reset_ips4_password,
-        name='auth_reset_ips4_password'),
-    url(r'^set_ips4_password/$', services.views.set_ips4_password, name='auth_set_ips4_password'),
-
-    # SMF Service Control
-    url(r'^activate_smf/$', services.views.activate_smf, name='auth_activate_smf'),
-    url(r'^deactivate_smf/$', services.views.deactivate_smf, name='auth_deactivate_smf'),
-    url(r'^reset_smf_password/$', services.views.reset_smf_password,
-        name='auth_reset_smf_password'),
-    url(r'^set_smf_password/$', services.views.set_smf_password, name='auth_set_smf_password'),
-
-    # Alliance Market Control
-    url(r'^activate_market/$', services.views.activate_market, name='auth_activate_market'),
-    url(r'^deactivate_market/$', services.views.deactivate_market, name='auth_deactivate_market'),
-    url(r'^reset_market_password/$', services.views.reset_market_password,
-        name='auth_reset_market_password'),
-    url(r'^set_market_password/$', services.views.set_market_password, name='auth_set_market_password'),
 
     # SRP URLS
     url(r'^srp_fleet_remove/(\w+)$', srp.views.srp_fleet_remove, name='auth_srp_fleet_remove'),
@@ -143,14 +70,6 @@ urlpatterns = [
 
 # User viewed/translated URLS
 urlpatterns += i18n_patterns(
-
-    # corputils
-    url(r'^corputils/$', corputils.views.corp_member_view, name='auth_corputils'),
-    url(r'^corputils/(?P<corpid>[0-9]+)/$', corputils.views.corp_member_view, name='auth_corputils_corp_view'),
-    url(r'^corputils/(?P<corpid>[0-9]+)/(?P<year>[0-9]+)/(?P<month>[0-9]+)/$', corputils.views.corp_member_view,
-        name='auth_corputils_month'),
-    url(r'^corputils/search/$', corputils.views.corputils_search, name="auth_corputils_search"),
-    url(r'^corputils/search/(?P<corpid>[0-9]+)/$', corputils.views.corputils_search, name='auth_corputils_search_corp'),
 
     # Fleetup
     url(r'^fleetup/$', fleetup.views.fleetup_view, name='auth_fleetup_view'),
@@ -177,21 +96,28 @@ urlpatterns += i18n_patterns(
         django.contrib.auth.views.password_reset_confirm, name='password_reset_confirm'),
 
     # Portal Urls
-    url(_(r'^dashboard/$'), authentication.views.dashboard_view, name='auth_dashboard'),
+    url(_(r'^dashboard/$'), eveonline.views.dashboard_view, name='auth_dashboard'),
     url(_(r'^help/$'), authentication.views.help_view, name='auth_help'),
 
     # Eveonline Urls
     url(_(r'^add_api_key/'), eveonline.views.add_api_key, name='auth_add_api_key'),
-    url(_(r'^api_key_management/'), eveonline.views.api_key_management_view,
-        name='auth_api_key_management'),
     url(_(r'^refresh_api_pair/([0-9]+)/$'), eveonline.views.user_refresh_api, name='auth_user_refresh_api'),
     url(_(r'^delete_api_pair/(\w+)/$'), eveonline.views.api_key_removal, name='auth_api_key_removal'),
     url(_(r'^characters/'), eveonline.views.characters_view, name='auth_characters'),
+    
+    # Corputils
+    url(_(r'^corpstats/'), include(corputils.urls, namespace='corputils')),
 
     # Group management
     url(_(r'^groups/'), groupmanagement.views.groups_view, name='auth_groups'),
     url(_(r'^group/management/'), groupmanagement.views.group_management,
         name='auth_group_management'),
+    url(_(r'^group/membership/$'), groupmanagement.views.group_membership,
+        name='auth_group_membership'),
+    url(_(r'^group/membership/(\w+)/$'), groupmanagement.views.group_membership_list,
+        name='auth_group_membership_list'),
+    url(_(r'^group/membership/(\w+)/remove/(\w+)/$'), groupmanagement.views.group_membership_remove,
+        name='auth_group_membership_remove'),
     url(_(r'^group/request_add/(\w+)'), groupmanagement.views.group_request_add,
         name='auth_group_request_add'),
     url(_(r'^group/request/accept/(\w+)'), groupmanagement.views.group_accept_request,
@@ -239,17 +165,6 @@ urlpatterns += i18n_patterns(
 
     # Service Urls
     url(_(r'^services/$'), services.views.services_view, name='auth_services'),
-    url(_(r'^services/jabber_broadcast/$'), services.views.jabber_broadcast_view,
-        name='auth_jabber_broadcast_view'),
-
-    # Teamspeak Urls
-    url(r'verify_teamspeak3/$', services.views.verify_teamspeak3, name='auth_verify_teamspeak3'),
-
-    # corputils
-    url(_(r'^corputils/$'), corputils.views.corp_member_view, name='auth_corputils'),
-    url(_(r'^corputils/(?P<corpid>[0-9]+)/$'), corputils.views.corp_member_view, name='auth_corputils_corp_view'),
-    url(_(r'^corputils/search/$'), corputils.views.corputils_search, name="auth_corputils_search"),
-    url(_(r'^corputils/search/(?P<corpid>[0-9]+)/$'), corputils.views.corputils_search, name='auth_corputils_search_corp'),
 
     # Timer URLS
     url(_(r'^timers/$'), timerboard.views.timer_view, name='auth_timer_view'),
@@ -275,9 +190,6 @@ urlpatterns += i18n_patterns(
     url(_(r'^notifications/$'), notifications.views.notification_list, name='auth_notification_list'),
     url(_(r'^notifications/(\w+)/$'), notifications.views.notification_view, name='auth_notification_view'),
 
-    # Jabber
-    url(_(r'^set_jabber_password/$'), services.views.set_jabber_password, name='auth_set_jabber_password'),
-
     # FleetActivityTracking (FAT)
     url(r'^fat/$', fleetactivitytracking.views.fatlink_view, name='auth_fatlink_view'),
     url(r'^fat/statistics/$', fleetactivitytracking.views.fatlink_statistics_view, name='auth_fatlink_view_statistics'),
@@ -300,4 +212,12 @@ urlpatterns += i18n_patterns(
     url(r'^fat/link/$', fleetactivitytracking.views.fatlink_view, name='auth_click_fatlink_view'),
     url(r'^fat/link/(?P<hash>[a-zA-Z0-9]+)/(?P<fatname>[a-z0-9_-]+)/$',
         fleetactivitytracking.views.click_fatlink_view),
+
+    url(r'^permissions/', include(permissions_tool.urls))
 )
+
+# Append hooked service urls
+services = get_hooks('services_hook')
+for svc in services:
+    urlpatterns += svc().urlpatterns
+
